@@ -7,49 +7,46 @@ library(dplyr)
 
 ## Defines global variables for the url, the directory in which to save the
 ## files, the repository directory and the relevant filenames in the ZIP
-dataURL <- 
-  "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-dataDir <- "G:/Documents/coursera/getting_cleaning_data/"
-ZIPfilename <- "UCI_HAR_Dataset.zip"
+extractedDir = "UCI HAR Dataset/"
+ZIPfilename <- "getdata_projectfiles_UCI HAR Dataset.zip"
 outputFile <- "G:/Documents/coursera/getting_cleaning_data/repo/UCI_HAR_tidy_dataset.txt"
 labelsFile <- "activity_labels.txt"
 featuresFile <- "features.txt"
-subjectsPrefix <- "subject_"
-dataPrefix <- "X_"
-dataLabelsPrefix <- "y_"
-testSuffix <- "test.txt"
-trainSuffix <- "train.txt"
+trainSubjectsFile <- "train/subject_train.txt"
+testSubjectsFile <- "test/subject_test.txt"
+trainLabelFile <- "train/y_train.txt"
+testLabelFile <- "test/y_test.txt"
+trainDataFile <- "train/X_train.txt"
+testDataFile <- "test/X_test.txt"
 
-  
+
+## Verifies that the data exists either as a ZIP or as an open directory in the current working dir
+## If it exists only as a ZIP, extracts it
+if (!file.exists(extractedDir)) {
+  if (file.exists(ZIPfilename)) {
+    unzip(destZIP)
+  } else {
+    stop("Could not find data in working dir")
+  }
+}
+
 ## Loads the training and test sets
 
-## Downloads and extracts the ZIP
-setwd(dataDir)
-destZIP <- paste(dataDir,ZIPfilename, sep="")
-download.file(dataURL, destZIP)
-extractedFiles <- unzip(destZIP)
-
 ## Loads the general files with the feature names and activity labels
-activityLabels <- read.table(extractedFiles[grep(labelsFile, extractedFiles)], 
+activityLabels <- read.table(paste(extractedDir, labelsFile, sep=""), 
                              stringsAsFactors=FALSE)
-features <- read.table(extractedFiles[grep(featuresFile, extractedFiles)], 
+features <- read.table(paste(extractedDir, featuresFile, sep=""), 
                        stringsAsFactors=FALSE)
 
 ## Loads training set and test set information
-trainData <- read.table(extractedFiles[
-  grep(paste("/", dataPrefix, trainSuffix, sep=""), extractedFiles)])
-trainSubjects <- read.table(extractedFiles[
-  grep(paste(subjectsPrefix, trainSuffix, sep=""), extractedFiles)])
-trainLabels <- read.table(extractedFiles[
-  grep(paste("/", dataLabelsPrefix, trainSuffix, sep=""), extractedFiles)], 
+trainData <- read.table(paste(extractedDir, trainDataFile, sep=""))
+trainSubjects <- read.table(paste(extractedDir, trainSubjectsFile, sep=""))
+trainLabels <- read.table(paste(extractedDir, trainLabelFile, sep=""), 
   stringsAsFactors=FALSE)
 
-testData <- read.table(extractedFiles[
-  grep(paste("/", dataPrefix, testSuffix, sep=""), extractedFiles)])
-testSubjects <- read.table(extractedFiles[
-  grep(paste(subjectsPrefix, testSuffix, sep=""), extractedFiles)])
-testLabels <- read.table(extractedFiles[
-  grep(paste("/", dataLabelsPrefix, testSuffix, sep=""), extractedFiles)], 
+testData <- read.table(paste(extractedDir, testDataFile, sep=""))
+testSubjects <- read.table(paste(extractedDir, testSubjectsFile, sep=""))
+testLabels <- read.table(paste(extractedDir, testLabelFile, sep=""), 
   stringsAsFactors=FALSE)
 
 
@@ -80,4 +77,4 @@ dataSummary <- mergedData %>% group_by(activity, subject) %>%
   summarise_each(funs(mean), 4:ncol(mergedData))
 
 ## Saves the data to the repo directory
-write.table(dataSummary, outputFile)
+write.table(dataSummary, outputFile, row.name=FALSE)
